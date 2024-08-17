@@ -1,0 +1,130 @@
+
+
+services:
+  hommar:
+    container_name: homarr
+    image: ghcr.io/ajnart/homarr:latest
+    restart: unless-stopped
+    networks:
+      - media
+    volumes:
+      - ./homarr/configs:/app/data/configs
+      - ./homarr/icons:/app/public/icons
+      - ./homarr/data:/data
+    ports:
+      - '7575:7575'
+  radarr:
+    image: linuxserver/radarr:5.9.0-nightly
+    container_name: radarr
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Bogota
+    volumes:
+      - ./radarr:/config
+      - downloads:/downloads
+      - movies:/movies
+    ports:
+      - 7878:7878
+    restart: unless-stopped
+
+  sonarr:
+    image: linuxserver/sonarr
+    container_name: sonarr
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Bogota
+    volumes:
+      - ./sonarr/data:/config
+      - downloads:/downloads
+      - tv:/tv
+    ports:
+      - 8989:8989
+    restart: unless-stopped
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Bogota
+    volumes:
+      - ./prowlarr/data:/config
+      - downloads:/downloads
+    ports:
+      - 9696:9696
+    restart: unless-stopped
+  
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    networks:
+      - media
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Bogota
+    volumes:
+      - ./qbittorrent/appdata:/config
+      - downloads:/downloads
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+    restart: unless-stopped
+  
+  flexget:
+    image: lscr.io/linuxserver/flexget:latest
+    container_name: flexget
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Bogota
+      - FG_LOG_LEVEL=info
+      - FG_LOG_FILE=/config/flexget.log
+      - FG_CONFIG_FILE=/config/.flexget/config.yml
+      - FG_WEBUI_PASSWORD=${PASSWORD} #optional
+    volumes:
+      - ./flexget/data:/config
+      - downloads:/data #optional
+    ports:
+      - 5050:5050
+    restart: unless-stopped
+
+  emby:
+    image: lscr.io/linuxserver/emby:latest
+    container_name: emby
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=America/Bogota
+    volumes:
+      - ./emby/library:/config
+      - tv:/data/tvshows
+      - movies:/data/movies
+      #- /opt/vc/lib:/opt/vc/lib #optional
+    ports:
+      - 8096:8096
+    restart: unless-stopped
+
+networks:
+  media:
+    driver: bridge
+
+volumes:
+  qbittorrent-config:
+  prowlarr-config:
+  sonarr-config:
+  radarr-config:
+  homarr-config:
+  downloads:
+  tv:
+  movies:
